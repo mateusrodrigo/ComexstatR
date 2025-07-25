@@ -1,158 +1,130 @@
-#Função para gerar filtros no padrão da API do Comex Stat municípios
-#' @title Pesquisa informações no sistema Comex Stat (municípios)
-#' @name pesquisar_comex_stat_mun
-#' @aliases pesquisar_comex_stat_mun
-#' @encoding UTF8
-#' @usage
-#' pesquisar_comex_stat_mun(ano_inicial = "ano corrente" , ano_final = "ano corrente",
-#' mes_inicial = "01", mes_final = "12", detalha_mes = FALSE,  tipo_op ="exp",
-#' tipo_ord= "val",filtros = " ", filtros_esp = " ", detalhamentos = " ", faixa = FALSE,
-#' valor_FOB = TRUE, valor_kg = TRUE)
-#' @param ano_inicial [int] ano inicial da consulta. ex:2018
-#' @param ano_final [int] ano final da consulta. ex:2018
-#' @param mes_inicial [int] mês inicial da consulta. ex:1
-#' @param mes_final [int] mês inicial da consulta. ex:12
-#' @param detalha_mes [logical] detalhar informacoes por mês. ex: TRUE
-#' @param tipo_op [char] tipo da operação, exportação ou importação. Valores possíveis: 'exp','imp'
-#' @param tipo_ord [char] tipo de ordenamento, valores ou detalhamento. Valores possíveis: 'val', 'det'
-#' @param filtros [vetor de char] vetor com os filtros desejados. Valores possíveis:'pais','blocos','uf', 'mun', 'sh4', 'sh2', 'secao'
-#' @param filtros_esp [vetor de char] especificacao dos filtros escolhidos. Um vetor deve ser informado
-#'para cada filtro com todos os itens a serem filtrados. Lista deve estar na ordem que os filtros foram passados.
-#'Para especificação dos filtros é necessario consultar as tabelas auxiliares \code{\link{Tabelas_Auxiliares}}
-#' @param faixa [logical] escolha se SH4 será uma cesta ou uma faixa. ex: FALSE
-#' @param detalhamentos [vetor de char] vetor com os detalhamentos desejados. Valores possíveis: 'pais','blocos','uf', 'mun', 'sh4', 'sh2', 'secao'
-#' @param valor_FOB [logical] define se os valores FOB serão mostrados
-#' @param valor_kg define se os valores de quilogramas líquidos serão mostrados
-#' @description
-#' Pesquisa estatísticas de importação e de exportação disponibilizadas pelo sistema Comex Stat e gera como resultado um dataframe.
-#' @examples
-#' pesquisar_comex_stat_mun(ano_inicial = 2018, ano_final = 2018, mes_inicial = 1, mes_final = 12,
-#'                      tipo_op = 'exp', tipo_ord = 'val', filtros = c('pais'), detalhamentos = c('pais','sh4'),
-#'                      filtros_esp = list(c(160,249)))
-#'
-#' pesquisar_comex_stat_mun(ano_inicial = 2018, ano_final = 2018, mes_inicial = 1, mes_final = 12,
-#'                     detalha_mes = FALSE, tipo_op = 'exp', tipo_ord = 'val', detalhamentos = c('pais','mun'),
-#'                     filtros = c(), filtros_esp = c())
-#'
-#'
-pesquisar_comex_stat_mun <- function(ano_inicial = substr(Sys.Date(), 1,4 ) , ano_final = substr(Sys.Date(), 1,4 ),
-                                 mes_inicial = 1, mes_final = 12, detalha_mes = FALSE,
-                                 tipo_op ='exp', tipo_ord='val',filtros = c(), filtros_esp = c(),
-                                 detalhamentos = c(), faixa = FALSE,
-                                 valor_FOB = TRUE, valor_kg = TRUE){
+#' @title Pesquisa estatísticas municipais no sistema Comex Stat
+#' @description Consulta dados de exportação/importação por município via API oficial do Comex Stat.
+#' @param ano_inicial [int] Ano inicial da consulta (ex.: 2025).
+#' @param ano_final [int] Ano final da consulta (ex.: 2025).
+#' @param mes_inicial [int] Mês inicial da consulta (1–12).
+#' @param mes_final [int] Mês final da consulta (1–12).
+#' @param detalha_mes [logical] TRUE para detalhar dados por mês.
+#' @param tipo_op [char] "exp" (exportação) ou "imp" (importação).
+#' @param tipo_ord [char] "val" (por valor) ou "det" (por detalhe).
+#' @param filtros [char[]] Vetor com nomes de filtros (ex.: c("pais", "mun")).
+#' @param filtros_esp [list] Lista de vetores com valores para cada filtro.
+#' @param detalhamentos [char[]] Vetor com campos de detalhamento (ex.: c("pais", "mun")).
+#' @param faixa [logical] TRUE para filtro por faixa (só para sh4, sh2, secao).
+#' @param valor_FOB [logical] TRUE para incluir valor FOB.
+#' @param valor_kg [logical] TRUE para incluir valor em kg.
+#' @return Data frame com resultados ou mensagem de erro.
+#' @export
+pesquisar_comex_stat_mun <- function(
+    ano_inicial   = as.integer(format(Sys.Date(), "%Y")),
+    ano_final     = as.integer(format(Sys.Date(), "%Y")),
+    mes_inicial   = 1,
+    mes_final     = 12,
+    detalha_mes   = FALSE,
+    tipo_op       = "exp",
+    tipo_ord      = "val",
+    filtros       = character(),
+    filtros_esp   = list(),
+    detalhamentos = character(),
+    faixa         = FALSE,
+    valor_FOB     = TRUE,
+    valor_kg      = TRUE
+) {
+  # Validações básicas
+  if (!is.numeric(ano_inicial) || ano_inicial %% 1 != 0) stop("`ano_inicial` deve ser inteiro.")
+  if (!is.numeric(ano_final)   || ano_final %% 1   != 0) stop("`ano_final` deve ser inteiro.")
+  if (!is.numeric(mes_inicial) || mes_inicial %% 1 != 0 || mes_inicial < 1 || mes_inicial > 12) stop("`mes_inicial` deve estar entre 1 e 12.")
+  if (!is.numeric(mes_final)   || mes_final %% 1   != 0 || mes_final   < 1 || mes_final   > 12) stop("`mes_final` deve estar entre 1 e 12.")
+  if (mes_inicial > mes_final) stop("`mes_inicial` deve ser ≤ `mes_final`.")
+  if (!tipo_op %in% c("exp","imp")) stop("`tipo_op` deve ser 'exp' ou 'imp'.")
+  if (!tipo_ord %in% c("val","det")) stop("`tipo_ord` deve ser 'val' ou 'det'.")
+  if (length(filtros) != length(filtros_esp)) stop("`filtros` e `filtros_esp` devem ter mesmo comprimento.")
 
-  # definição de listas com detalhamentos/filtros e nomes utilizados pela API
-  lista_detalh_e_filtros <- c('pais','blocos','uf', 'mun', 'sh4', 'sh2', 'secao')
+  # Mapeamento filtros ⇆ nomes de API
+  mapeamento <- list(
+    pais   = "noPaispt", blocos = "noBlocopt", uf  = "noUf",
+    mun    = "noMunMin",  sh4    = "noSh4pt",   sh2 = "noSh2pt",
+    secao  = "noSecpt"
+  )
 
-  lista_nomes <- c('noPaispt', 'noBlocopt', 'noUf', 'noMunMin','noSh4pt', 'noSh2pt', 'noSecpt')
+  # Formatação de meses
+  mes_inicial <- sprintf("%02d", mes_inicial)
+  mes_final   <- sprintf("%02d", mes_final)
 
-  #gera detalhamentos e filtros dos detalhamentos no padrão da API
-  filtra_lista <- c()
-  filtra <- c()
-  detalha <- c()
-  intervalo <- c()
-  aux <- 1
+  # Conversão de parâmetros para API
+  tipo_op_num  <- switch(tipo_op, exp = 1, imp = 2)
+  tipo_ord_num <- switch(tipo_ord, val = 1, det = 2)
 
-  for (i in 1:length(lista_detalh_e_filtros)) {
-
-    #preenche detalhamentos
-    if (lista_detalh_e_filtros[i] %in% detalhamentos) {
-
-      detalha <- c(detalha, glue::glue('{{"id":"{lista_nomes[i]}","text":""}}'))
-
-    }
-
-    #preenche lista de filtros e suas especificações
-    if (lista_detalh_e_filtros[i] %in% filtros) {
-
-      filtra_lista <- c(filtra_lista, glue::glue('{{"id":"{lista_nomes[i]}"}}'))
-
-      if (faixa && (filtros[aux] %in% c('sh4', 'sh2', 'secao')) ) {
-
-        filtra <- c(filtra, glue::glue('{{"item":[],"idInput":"{lista_nomes[i]}"}}'))
-        intervalo <- glue::glue('"rangeFilter":[{{"id":"{lista_nomes[i]}","value":{{"rangeOne":"{filtros_esp[[aux]][1]}","rangeTwo":"{filtros_esp[[aux]][2]}"}}}}],')
-
-      } else {
-
-        if (length(filtros_esp[[aux]]) != 0) {
-
-          filtra <- c(filtra, glue::glue('{{"item":[{lista_colapsada}],"idInput":"{lista_nomes[i]}"}}',
-                                         lista_colapsada = toString(shQuote(filtros_esp[[aux]]))))
-
-        }
-      }
-
-      aux <- aux + 1
+  # Construção de filtros e detalhamentos
+  filterList  <- lapply(filtros, function(it) list(id = mapeamento[[it]]))
+  filterArray <- list()
+  rangeFilter <- list()
+  for (i in seq_along(filtros)) {
+    it  <- filtros[i]
+    api <- mapeamento[[it]]
+    vals <- as.character(filtros_esp[[i]])
+    if (faixa && it %in% c("sh4","sh2","secao")) {
+      filterArray[[i]] <- list(item = list(), idInput = api)
+      rangeFilter[[length(rangeFilter)+1]] <- list(
+        id    = api,
+        value = list(rangeOne = vals[1], rangeTwo = vals[2])
+      )
+    } else {
+      filterArray[[i]] <- list(item = vals, idInput = api)
     }
   }
+  detailDatabase <- lapply(detalhamentos, function(it) list(id = mapeamento[[it]], text = ""))
 
+  # Montagem do corpo da requisição
+  body_list <- list(
+    yearStart      = ano_inicial,
+    yearEnd        = ano_final,
+    typeForm       = tipo_op_num,
+    typeOrder      = tipo_ord_num,
+    filterList     = filterList,
+    filterArray    = filterArray,
+    detailDatabase = detailDatabase,
+    rangeFilter    = rangeFilter,
+    monthDetail    = detalha_mes,
+    metricFOB      = valor_FOB,
+    metricKG       = valor_kg,
+    monthStart     = mes_inicial,
+    monthEnd       = mes_final,
+    formQueue      = "city",
+    langDefault    = "pt"
+  )
 
-  filtra_lista <- glue::glue_collapse(filtra_lista, sep = ",")
-  ifelse(purrr::is_empty(filtra_lista), filtra_lista <- glue::glue('"filterList":[],') ,filtra_lista <- glue::glue('"filterList":[{filtra_lista}],'))
-  filtra <- glue::glue_collapse(filtra, sep = ",")
-  ifelse(purrr::is_empty(filtra), filtra <- glue::glue('"filterArray":[],') ,filtra <- glue::glue('"filterArray":[{filtra}],'))
-  detalha <- glue::glue_collapse(detalha, sep = ",")
-  ifelse(purrr::is_empty(detalha), detalha <- glue::glue('"detailDatabase":[],'),detalha <- glue::glue('"detailDatabase":[{detalha}],'))
-  ifelse(is.null(intervalo) || purrr::is_empty(intervalo), intervalo <- '', intervalo <- intervalo)
+  filtro_json <- jsonlite::toJSON(body_list, auto_unbox = TRUE)
+  url_final   <- paste0(
+    "https://api-comexstat.mdic.gov.br/cities?filter=",
+    utils::URLencode(iconv(filtro_json, to = "UTF-8", sub = "byte"))
+  )
 
+  # Requisição e tratamento de erros
+  resposta <- httr::RETRY("GET", url_final, times = 3, pause_base = 1)
+  switch(as.character(resposta$status_code),
+         "413" = stop("A consulta retornou dados demais. Refine os filtros."),
+         "429" = stop("Muitas requisições. Aguarde e tente novamente."),
+         "500" = stop("Erro interno da API."),
+         "504" = stop("Tempo de resposta excedido. Reduza o escopo da consulta."),
+         httr::stop_for_status(resposta, task = "consultar Comex Stat municípios")
+  )
 
-  #converte tipo de operação e tipo de ordenamento para valores da API
-  ifelse(tipo_op == "exp", tipo_op <-  1, tipo_op <- 2)
-  ifelse(tipo_ord == "val", tipo_ord <- 1, tipo_ord <- 2)
+  # Processamento da resposta
+  dados_txt <- httr::content(resposta, "text", encoding = "UTF-8")
+  dados     <- jsonlite::fromJSON(dados_txt, flatten = TRUE)[[1]][[1]]
+  df        <- as.data.frame(dados)
 
-  #transforma mês inicial e mês final para padrão da API ex: "01"
-  mes_inicial <- stringr::str_pad(mes_inicial, width = 2, side = "left", pad = "0")
-  mes_final <- stringr::str_pad(mes_final, width = 2, side = "left", pad = "0")
+  if (nrow(df) == 0) return("Nenhum resultado retornado. Verifique os parâmetros.")
 
-  #muda TRUE p/ true e FALSE p/ false (padrão API)
-  ifelse(detalha_mes, detalha_mes <- 'true', detalha_mes <- 'false')
-  ifelse(valor_FOB, valor_FOB <- 'true', valor_FOB <- 'false')
-  ifelse(valor_kg, valor_kg <- 'true', valor_kg <- 'false')
+  class(df) <- c("comexstat_df", class(df))
+  attr(df, "params") <- list(
+    data_consulta = Sys.time(), url_consulta = url_final,
+    ano_inicial, ano_final, mes_inicial, mes_final,
+    detalha_mes, tipo_op, tipo_ord,
+    filtros, filtros_esp, detalhamentos, faixa,
+    incluir_fob = valor_FOB, incluir_kg = valor_kg
+  )
 
-  #cria filtro para pesquisa
-  filtro_cs <- glue::glue('{{"yearStart":"{ano_inicial}",
-  "yearEnd":"{ano_final}",
-  "typeForm":{tipo_op},
-  "typeOrder":{tipo_ord},
-  {filtra_lista}
-  {filtra}
-  {detalha}{intervalo}
-  "monthDetail":{detalha_mes},
-  "metricFOB":{valor_FOB},
-  "metricKG":{valor_kg},
-  "monthStart":"{mes_inicial}",
-  "monthEnd":"{mes_final}",
-  "formQueue":"city",
-  "langDefault":"pt"}}')
-
-
-  #Codifica filtro para URL
-  filtro_cs <- as.character(filtro_cs)
-  filtro_cs <- iconv(filtro_cs, to = 'UTF8')
-  filtro_cs <- utils::URLencode(filtro_cs)
-
-  #endereço base da API
-  comex_stat <- "http://api.comexstat.mdic.gov.br/cities?filter="
-
-  #cria a URL completa para a consulta
-  url_completa <- paste0(comex_stat, filtro_cs)
-
-  #consulta a API, extrai os dados e converte para um dataframe
-  pesquisa_cs <- httr::GET(url_completa)
-
-  #Verifica se a resposta foi recebida corretamente
-  if(pesquisa_cs$status_code!=200) {
-    return('Essa consulta é muito extensa (mais de 150 mil linhas) ou extrapolou o tempo de processamento permitido.')
-  }
-
-  pesquisa_cs <- httr::content(pesquisa_cs, "text", encoding = 'UTF8')
-  pesquisa_cs <- jsonlite::fromJSON(pesquisa_cs,flatten = TRUE)
-  pesquisa_cs <- as.data.frame(pesquisa_cs[[1]][[1]])
-
-  if (length(pesquisa_cs)==0) {
-    return('Esta consulta não trouxe nenhum resultado! Favor altere os parâmetros e tente novamente.')
-  }
-
-  return(pesquisa_cs)
-
+  return(df)
 }

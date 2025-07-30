@@ -40,93 +40,117 @@ consultar_tabela_auxiliar <- function(
 
 # Wrappers gerados automaticamente:
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_ncm <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "product/ncm", "noNcmpt", c("NCM", "Descrição"), trim_chars = 12)
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_sh6 <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "harmonized-system/subposition", "noSh6pt", c("SH6", "Descrição"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_sh4 <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "harmonized-system/position", "noSh4pt", c("SH4", "Descrição"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_sh2 <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "harmonized-system/chapter", "noSh2pt", c("SH2", "Descrição"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_ncm_sec <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "harmonized-system/section", "noSecpt", c("NCM_SEC", "Descrição"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_pais <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "location/countries", "noPaispt", c("CO_PAIS", "País"), distinct_id = TRUE)
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_blocos <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "location/blocks", "noBlocopt", c("CO_BLOCO", "Bloco"), distinct_id = TRUE)
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_uf <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "location/states", "noUf", c("CO_UF", "UF"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_mun <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "location/cities", "noMunMin", c("CO_MUN", "Município"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_via <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "location/via", "noVia", c("CO_VIA", "Via"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_urf <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "location/urf", "noUrf", c("CO_URF", "URF"), trim_chars = 11)
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_cgce3 <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "product-description/cgce-n3", "noCgceN3pt", c("CO_CGCE_N3", "Descrição"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_cgce2 <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "product-description/cgce-n2", "noCgceN2pt", c("CO_CGCE_N2", "Descrição"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_cgce1 <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "product-description/cgce-n1", "noCgceN1pt", c("CO_CGCE_N1", "Descrição"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_cuci_item <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "product-category/item", "noCuciItempt", c("CO_CUCI_ITEM", "Descrição"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_cuci_sub <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "product-category/subposition", "noCuciSubpt", c("CO_CUCI_SUBGRUPO", "Descrição"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_cuci_pos <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "product-category/position", "noCuciPospt", c("CO_CUCI_POSICAO", "Descrição"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_cuci_cap <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "product-category/chapter", "noCuciCappt", c("CO_CUCI_CAPITULO", "Descrição"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_cuci_sec <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "product-category/section", "noCuciSecpt", c("CO_CUCI_SECAO", "Descrição"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_isic_classe <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "product-classification/class", "noIsicClasspt", c("CO_ISIC_CLASSE", "Descrição"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_isic_grupo <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "product-classification/group", "noIsicGrouppt", c("CO_ISIC_GRUPO", "Descrição"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_isic_div <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "product-classification/division", "noIsicDivisionpt", c("CO_ISIC_DIVISAO", "Descrição"))
 
 #' @rdname Tabelas_Auxiliares
+#' @export
 pesquisar_isic_sec <- function(pattern = "")
   consultar_tabela_auxiliar(pattern, "product-classification/section", "noIsicSectionpt", c("CO_ISIC_SECAO", "Descrição"))
+
